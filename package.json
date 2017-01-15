@@ -1,0 +1,10 @@
+{
+  "name": "Like-My-GF",
+  "version": "0.0.1",
+  "description": "instagram autolike",
+  "main": "server.js",
+  "author": "kiote",
+  "dependencies": {
+    "request": "^2.79.0"
+  }
+}
