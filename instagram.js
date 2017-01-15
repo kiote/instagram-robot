@@ -1,26 +1,26 @@
 const request = require('request');
 const login_url = 'https://www.instagram.com/accounts/login/ajax/';
 
-const getCookies = (resp) => {
-  return resp.headers['set-cookie'];
-}
-
-const getCsrfToken = (cookie) => {
-  return cookie[1].split(';')[0].split('=')[1];
-}
-
-const getMidCookie = (cookie) => {
-  return cookie[2].split(';')[0].split('=')[1];
+const cookies = {
+  cookie: (resp) => {
+    return resp.headers['set-cookie'];
+  },
+  getCsrfToken: (cookie) => {
+    return cookie[1].split(';')[0].split('=')[1];
+  },
+  getMid: (cookie) => {
+    return cookie[2].split(';')[0].split('=')[1];
+  }
 }
 
 /**
  * Logs in into the instagram with given login and password
  * they should be set with env vars
  */
-const login = (resp, callback) => {
-  let cookie = getCookies(resp);
-  let csrftoken = getCsrfToken(cookie);
-  let mid = getMidCookie(cookie);
+const login = (resp) => {
+  let cookie = cookies.cookie(resp);
+  let csrftoken = cookies.getCsrfToken(cookie);
+  let mid = cookies.getMid(cookie);
 
   request.post(login_url,
   {
@@ -32,11 +32,16 @@ const login = (resp, callback) => {
       'referer': 'https://www.instagram.com/',
       'x-csrftoken': csrftoken,
     }
-  }, callback);
+  }, (err, resp, body) => {
+    getUserLanding(resp, body);
+  });
 }
 
-// const getPosts
+const getUserLanding = (resp, body) => {
+    cookie = resp.headers['set-cookie'];
+    console.log(cookie);
+}
 
 module.exports = {
-  login: login,
+  login: login
 };
