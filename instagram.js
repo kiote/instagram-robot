@@ -62,27 +62,27 @@ const saveLoginCookie = (resp, body, mid, callback) => {
 }
 
 const setLike = (body, credentials) => {
-  const json_ = parseJSONfromTargetPage(body);
-  for (let i=0; l=json_.length, i < l; i++) {
-    request.post(`https://www.instagram.com/web/likes/${json_[i]['id']}/like/`, {
-      headers: {
-        'cookie': `cookie:${fbm}=base_domain=.instagram.com; mid=${credentials.mid}; sessionid=${credentials.sessionId}; s_network=""; ds_user_id=${credentials.dsUserId}; csrftoken=${credentials.csrftoken}; ig_pr=2; ig_vw=1267`,
-        'referer': 'https://www.instagram.com/',
-        'x-csrftoken': credentials.csrftoken,
-      }
-    }, (err, resp, body) => {
-      console.log(body)
-    });
-  }
+  parseJSONfromTargetPage(body, (json_) => {
+    for (let i=0; l=json_.length, i < l; i++) {
+      request.post(`https://www.instagram.com/web/likes/${json_[i]['id']}/like/`, {
+        headers: {
+          'cookie': `cookie:${fbm}=base_domain=.instagram.com; mid=${credentials.mid}; sessionid=${credentials.sessionId}; s_network=""; ds_user_id=${credentials.dsUserId}; csrftoken=${credentials.csrftoken}; ig_pr=2; ig_vw=1267`,
+          'referer': 'https://www.instagram.com/',
+          'x-csrftoken': credentials.csrftoken,
+        }
+      }, (err, resp, body) => {
+        console.log(body)
+      });
+    }
+  });
 }
 
-const parseJSONfromTargetPage = (body) => {
-  const content = body.match(/window._sharedData = .*<\/script>/g);
-  const json_end = ';'
-  let shared_data = content[0].slice(21, 1000000);
-  shared_data = shared_data.slice(0, shared_data.indexOf(json_end));
+const parseJSONfromTargetPage = (body, callback) => {
+  const re = /window._sharedData = (.*);<\/script>/g
+  const content = re.exec(body);
+  const shared_data = content[1];
   json_ = JSON.parse(shared_data);
-  return json_['entry_data']['ProfilePage'][0]['user']['media']['nodes'];
+  callback(json_['entry_data']['ProfilePage'][0]['user']['media']['nodes']);
 }
 
 module.exports = {
