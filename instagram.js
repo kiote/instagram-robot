@@ -4,8 +4,6 @@ const cheerio = require('cheerio')
 const login_url = 'https://www.instagram.com/accounts/login/ajax/';
 
 const fbm = 'fbm_124024574287414';
-const dsUserId = '7992144';
-
 
 const cookies = {
   cookie: (resp) => {
@@ -13,6 +11,9 @@ const cookies = {
   },
   getToken: (cookie, position=1) => {
     return cookie[position].split(';')[0].split('=')[1];
+  },
+  getDsUserId: (sessionId) => {
+    return sessionId.match(/auth_user_id%22%3A(\d+)/g)[0].slice(18,29)
   }
 }
 
@@ -42,10 +43,14 @@ const login = (resp) => {
 }
 
 const saveLoginCookie = (resp, body, mid) => {
-    cookie = cookies.cookie(resp);
-    csrftoken = cookies.getToken(cookie, 0);
-    sessionId = cookies.getToken(cookie, 1);
-    console.log(cookie);
+    let cookie = cookies.cookie(resp);
+    let csrftoken = cookies.getToken(cookie, 0);
+    let sessionId = cookies.getToken(cookie, 1);
+    let dsUserId = cookies.getDsUserId(sessionId);
+    console.log('cookie: ' + cookie);
+    console.log('csrftoken: ' + csrftoken);
+    console.log('sessionId: ' + sessionId);
+    console.log('ds_user_id: ' + dsUserId);
 }
 
 module.exports = {
