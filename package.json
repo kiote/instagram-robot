@@ -5,6 +5,7 @@
   "main": "server.js",
   "author": "kiote",
   "dependencies": {
+    "phantomjs": "^2.1.7",
     "request": "^2.79.0"
   }
 }

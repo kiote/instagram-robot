@@ -1,15 +1,18 @@
 const request = require('request');
+const cheerio = require('cheerio')
+
 const login_url = 'https://www.instagram.com/accounts/login/ajax/';
+
+const fbm = 'fbm_124024574287414';
+const dsUserId = '7992144';
+
 
 const cookies = {
   cookie: (resp) => {
     return resp.headers['set-cookie'];
   },
-  getCsrfToken: (cookie) => {
-    return cookie[1].split(';')[0].split('=')[1];
-  },
-  getMid: (cookie) => {
-    return cookie[2].split(';')[0].split('=')[1];
+  getToken: (cookie, position=1) => {
+    return cookie[position].split(';')[0].split('=')[1];
   }
 }
 
@@ -19,8 +22,8 @@ const cookies = {
  */
 const login = (resp) => {
   let cookie = cookies.cookie(resp);
-  let csrftoken = cookies.getCsrfToken(cookie);
-  let mid = cookies.getMid(cookie);
+  let csrftoken = cookies.getToken(cookie, 1);
+  let mid = cookies.getToken(cookie, 2);
 
   request.post(login_url,
   {
@@ -28,17 +31,20 @@ const login = (resp) => {
             password: process.env.PASSWORD
           },
     headers: {
-      'cookie': `fbm_124024574287414=base_domain=.instagram.com; mid=${mid}; s_network=""; ig_pr=2; ig_vw=1148; csrftoken=${csrftoken}`,
+      'cookie': `${fbm}=base_domain=.instagram.com; mid=${mid}; s_network=""; ig_pr=2; ig_vw=1148; csrftoken=${csrftoken}`,
       'referer': 'https://www.instagram.com/',
       'x-csrftoken': csrftoken,
     }
   }, (err, resp, body) => {
-    getUserLanding(resp, body);
+    // callback
+    saveLoginCookie(resp, body, mid);
   });
 }
 
-const getUserLanding = (resp, body) => {
-    cookie = resp.headers['set-cookie'];
+const saveLoginCookie = (resp, body, mid) => {
+    cookie = cookies.cookie(resp);
+    csrftoken = cookies.getToken(cookie, 0);
+    sessionId = cookies.getToken(cookie, 1);
     console.log(cookie);
 }
 
