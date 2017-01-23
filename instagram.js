@@ -22,7 +22,7 @@ const cookies = {
  * Logs in into the instagram with given login and password
  * they should be set with env vars
  */
-const login = (resp) => {
+const autoLike = (resp) => {
   let cookie = cookies.cookie(resp);
   let csrftoken = cookies.getToken(cookie, 1);
   let mid = cookies.getToken(cookie, 2);
@@ -39,29 +39,52 @@ const login = (resp) => {
     }
   }, (err, resp, body) => {
     // callback
-    saveLoginCookie(resp, body, mid);
+    saveLoginCookie(resp, body, mid, (body, credentials) => setLike(body, credentials));
   });
 }
 
-const saveLoginCookie = (resp, body, mid) => {
+const saveLoginCookie = (resp, body, mid, callback) => {
     let cookie = cookies.cookie(resp);
-    let csrftoken = cookies.getToken(cookie, 0);
-    let sessionId = cookies.getToken(cookie, 1);
-    let dsUserId = cookies.getDsUserId(sessionId);
+    const credentials = {
+      csrftoken: cookies.getToken(cookie, 0),
+      sessionId: cookies.getToken(cookie, 1),
+      dsUserId: cookies.getDsUserId(cookies.getToken(cookie, 1)),
+      mid: mid
+    }
 
     request.get(main_page_url + process.env.TARGET, {
       headers: {
-        'cookie': `cookie:${fbm}=base_domain=.instagram.com; mid=${mid}; sessionid=${sessionId}; s_network=""; ds_user_id=${dsUserId}; csrftoken=${csrftoken}; ig_pr=2; ig_vw=1267`
+        'cookie': `cookie:${fbm}=base_domain=.instagram.com; mid=${mid}; sessionid=${credentials.sessionId}; s_network=""; ds_user_id=${credentials.dsUserId}; csrftoken=${credentials.csrftoken}; ig_pr=2; ig_vw=1267`
       }
     }, (err, resp, body) => {
-      const content = body.match(/window._sharedData = .*<\/script>/g);
-      let shared_data = content[0].slice(21, 1000000);
-      const json_end = ';'
-      shared_data = shared_data.slice(0, shared_data.indexOf(json_end));
-      console.log(shared_data);
+      callback(body, credentials);
     })
 }
 
+const setLike = (body, credentials) => {
+  const json_ = parseJSONfromTargetPage(body);
+  for (let i=0; l=json_.length, i < l; i++) {
+    request.post(`https://www.instagram.com/web/likes/${json_[i]['id']}/like/`, {
+      headers: {
+        'cookie': `cookie:${fbm}=base_domain=.instagram.com; mid=${credentials.mid}; sessionid=${credentials.sessionId}; s_network=""; ds_user_id=${credentials.dsUserId}; csrftoken=${credentials.csrftoken}; ig_pr=2; ig_vw=1267`,
+        'referer': 'https://www.instagram.com/',
+        'x-csrftoken': credentials.csrftoken,
+      }
+    }, (err, resp, body) => {
+      console.log(body)
+    });
+  }
+}
+
+const parseJSONfromTargetPage = (body) => {
+  const content = body.match(/window._sharedData = .*<\/script>/g);
+  const json_end = ';'
+  let shared_data = content[0].slice(21, 1000000);
+  shared_data = shared_data.slice(0, shared_data.indexOf(json_end));
+  json_ = JSON.parse(shared_data);
+  return json_['entry_data']['ProfilePage'][0]['user']['media']['nodes'];
+}
+
 module.exports = {
-  login: login
+  autoLike: autoLike
 };
