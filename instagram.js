@@ -16,7 +16,7 @@ const cookies = {
   getDsUserId: (sessionId) => {
     return sessionId.match(/auth_user_id%22%3A(\d+)/g)[0].slice(18,29)
   }
-}
+};
 
 /**
  * Logs in into the instagram with given login and password
@@ -41,7 +41,7 @@ const autoLike = (resp) => {
     // callback
     saveLoginCookie(resp, body, mid, (body, credentials) => setLike(body, credentials));
   });
-}
+};
 
 const saveLoginCookie = (resp, body, mid, callback) => {
     let cookie = cookies.cookie(resp);
@@ -50,7 +50,7 @@ const saveLoginCookie = (resp, body, mid, callback) => {
       sessionId: cookies.getToken(cookie, 1),
       dsUserId: cookies.getDsUserId(cookies.getToken(cookie, 1)),
       mid: mid
-    }
+    };
 
     request.get(main_page_url + process.env.TARGET, {
       headers: {
@@ -59,7 +59,7 @@ const saveLoginCookie = (resp, body, mid, callback) => {
     }, (err, resp, body) => {
       callback(body, credentials);
     })
-}
+};
 
 const setLike = (body, credentials) => {
   parseJSONfromTargetPage(body, (json_) => {
@@ -75,7 +75,7 @@ const setLike = (body, credentials) => {
       });
     }
   });
-}
+};
 
 const parseJSONfromTargetPage = (body, callback) => {
   const re = /window._sharedData = (.*);<\/script>/g
@@ -83,7 +83,7 @@ const parseJSONfromTargetPage = (body, callback) => {
   const shared_data = content[1];
   json_ = JSON.parse(shared_data);
   callback(json_['entry_data']['ProfilePage'][0]['user']['media']['nodes']);
-}
+};
 
 module.exports = {
   autoLike: autoLike
