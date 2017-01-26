@@ -1,5 +1,4 @@
 const request = require('request');
-const cheerio = require('cheerio');
 
 const main_page_url = 'https://www.instagram.com/';
 const login_url = `${main_page_url}accounts/login/ajax/`;
